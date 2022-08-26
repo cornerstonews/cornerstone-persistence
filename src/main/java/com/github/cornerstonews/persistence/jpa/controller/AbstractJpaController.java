@@ -318,10 +318,14 @@ public abstract class AbstractJpaController<T> implements JpaController<T> {
     }
 
     public Long findByCount(T searchEntity) {
-        return this.findByCount(searchEntity, this.defaultPredicatesProvider);
+        return this.findByCount(searchEntity, this.defaultPredicatesProvider, null);
     }
 
     protected Long findByCount(T searchEntity, PredicatesProvider<T> predicateProvider) {
+        return findByCount(searchEntity, predicateProvider, true);
+    }
+
+    protected Long findByCount(T searchEntity, PredicatesProvider<T> predicateProvider, Boolean distinctCount) {
         EntityManager em = null;
         try {
             em = getEntityManager();
@@ -329,7 +333,13 @@ public abstract class AbstractJpaController<T> implements JpaController<T> {
             CriteriaQuery<Long> cq = cb.createQuery(Long.class);
             Root<T> root = cq.from(this.classType);
             List<Predicate> predicates = predicateProvider.getPredicates(searchEntity, cb, cq, root);
-            cq.select(cb.count(root));
+
+            if (distinctCount == null || distinctCount) {
+                cq.select(cb.countDistinct(root));
+            } else {
+                cq.select(cb.count(root));
+            }
+
             cq.where(predicates.toArray(new Predicate[0]));
             TypedQuery<Long> q = em.createQuery(cq);
             return q.getSingleResult();
