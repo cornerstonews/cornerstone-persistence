@@ -252,58 +252,92 @@ public abstract class AbstractJpaController<T> implements JpaController<T> {
     }
 
     public List<T> findBy(T searchEntity) {
-        return findBy(searchEntity, null, false);
+        return findBy(searchEntity, true, null, false);
+    }
+
+    public List<T> findBy(T searchEntity, boolean distinct) {
+        return findBy(searchEntity, distinct, null, false);
     }
     
     public List<T> findBy(T searchEntity, String orderBy, boolean desc) {
-        return findBy(searchEntity, orderBy, true, desc);
+        return findBy(searchEntity, true, orderBy, true, desc);
     }
 
+    public List<T> findBy(T searchEntity, boolean distinct, String orderBy, boolean desc) {
+        return findBy(searchEntity, distinct, orderBy, true, desc);
+    }
+    
     public List<T> findBy(T searchEntity, String orderBy, boolean orderByIgnoreCase, boolean desc) {
-        return findBy(searchEntity, this.defaultPredicatesProvider, orderBy, orderByIgnoreCase, desc);
+        return findBy(searchEntity, this.defaultPredicatesProvider, true, orderBy, orderByIgnoreCase, desc);
     }
-
+    
+    public List<T> findBy(T searchEntity, boolean distinct, String orderBy, boolean orderByIgnoreCase, boolean desc) {
+        return findBy(searchEntity, this.defaultPredicatesProvider, distinct, orderBy, orderByIgnoreCase, desc);
+    }
+    
     public List<T> findBy(T searchEntity, int firstResult, int maxResults) {
-        return findBy(searchEntity, firstResult, maxResults, null, false);
+        return findBy(searchEntity, true, firstResult, maxResults, null, false);
+    }
+    
+    public List<T> findBy(T searchEntity, boolean distinct, int firstResult, int maxResults) {
+        return findBy(searchEntity, distinct, firstResult, maxResults, null, false);
     }
     
     public List<T> findBy(T searchEntity, int firstResult, int maxResults, String orderBy, boolean desc) {
-        return findBy(searchEntity, firstResult, maxResults, orderBy, true, desc);
+        return findBy(searchEntity, true, firstResult, maxResults, orderBy, true, desc);
+    }
+    
+    public List<T> findBy(T searchEntity, boolean distinct, int firstResult, int maxResults, String orderBy, boolean desc) {
+        return findBy(searchEntity, distinct, firstResult, maxResults, orderBy, true, desc);
     }
 
     public List<T> findBy(T searchEntity, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
-        return findBy(searchEntity, this.defaultPredicatesProvider, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
+        return findBy(searchEntity, this.defaultPredicatesProvider, true, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
     }
 
+    public List<T> findBy(T searchEntity, boolean distinct, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
+        return findBy(searchEntity, this.defaultPredicatesProvider, distinct, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
+    }
+    
     protected List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, String orderBy, boolean orderByIgnoreCase, boolean desc) {
-        return findBy(searchEntity, predicateProvider, true, -1, -1, orderBy, orderByIgnoreCase, desc);
+        return findBy(searchEntity, predicateProvider, true, true, -1, -1, orderBy, orderByIgnoreCase, desc);
+    }
+    
+    protected List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, boolean distinct, String orderBy, boolean orderByIgnoreCase, boolean desc) {
+        return findBy(searchEntity, predicateProvider, distinct, true, -1, -1, orderBy, orderByIgnoreCase, desc);
     }
 
     protected List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
-        return findBy(searchEntity, predicateProvider, false, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
+        return findBy(searchEntity, predicateProvider, true, false, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
     }
-
-    private List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, boolean all, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
+    
+    protected List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, boolean distinct, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
+        return findBy(searchEntity, predicateProvider, distinct, false, firstResult, maxResults, orderBy, orderByIgnoreCase, desc);
+    }
+    
+    private List<T> findBy(T searchEntity, PredicatesProvider<T> predicateProvider, boolean distinct, boolean all, int firstResult, int maxResults, String orderBy, boolean orderByIgnoreCase, boolean desc) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<T> cq = cb.createQuery(this.classType);
             Root<T> root = cq.from(this.classType);
-            List<Predicate> predicates = predicateProvider.getPredicates(searchEntity, cb, cq, root);
             cq.select(root);
-            cq.where(predicates.toArray(new Predicate[0]));
+            cq.distinct(distinct);
 
+            List<Predicate> predicates = predicateProvider.getPredicates(searchEntity, cb, cq, root);
+            cq.where(predicates.toArray(new Predicate[0]));
+            
             Expression<String> orderByExpression = predicateProvider.getOrderBy(orderBy, cb, cq, root);
             if (orderByIgnoreCase && CharSequence.class.isAssignableFrom(orderByExpression.getJavaType())) {
                 orderByExpression = cb.upper(orderByExpression);
             }
-
             if (desc) {
                 cq.orderBy(cb.desc(orderByExpression));
             } else {
                 cq.orderBy(cb.asc(orderByExpression));
             }
+            
             TypedQuery<T> q = em.createQuery(cq);
             if (!all) {
                 q.setFirstResult(firstResult);
@@ -318,28 +352,32 @@ public abstract class AbstractJpaController<T> implements JpaController<T> {
     }
 
     public Long findByCount(T searchEntity) {
-        return this.findByCount(searchEntity, this.defaultPredicatesProvider, null);
+        return this.findByCount(searchEntity, this.defaultPredicatesProvider, true);
     }
 
+    public Long findByCount(T searchEntity, boolean distinct) {
+        return this.findByCount(searchEntity, this.defaultPredicatesProvider, distinct);
+    }
+    
     protected Long findByCount(T searchEntity, PredicatesProvider<T> predicateProvider) {
         return findByCount(searchEntity, predicateProvider, true);
     }
 
-    protected Long findByCount(T searchEntity, PredicatesProvider<T> predicateProvider, Boolean distinctCount) {
+    protected Long findByCount(T searchEntity, PredicatesProvider<T> predicateProvider, boolean distinct) {
         EntityManager em = null;
         try {
             em = getEntityManager();
             CriteriaBuilder cb = em.getCriteriaBuilder();
             CriteriaQuery<Long> cq = cb.createQuery(Long.class);
             Root<T> root = cq.from(this.classType);
-            List<Predicate> predicates = predicateProvider.getPredicates(searchEntity, cb, cq, root);
 
-            if (distinctCount == null || distinctCount) {
+            if (distinct) {
                 cq.select(cb.countDistinct(root));
             } else {
                 cq.select(cb.count(root));
             }
 
+            List<Predicate> predicates = predicateProvider.getPredicates(searchEntity, cb, cq, root);
             cq.where(predicates.toArray(new Predicate[0]));
             TypedQuery<Long> q = em.createQuery(cq);
             return q.getSingleResult();

@@ -80,7 +80,6 @@ class ExampleJpaController extends AbstractJpaController<Example> {
                 if (edgeTable != null) {
                     predicates.add(cb.equal(root.join(Example_.middleTables).get(MiddleTable_.edgeTable), edgeTable));
                 }
-                cq.distinct(true);
                 return predicates;
             }
 
