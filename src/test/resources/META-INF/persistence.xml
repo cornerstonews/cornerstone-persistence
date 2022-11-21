@@ -3,6 +3,8 @@
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
 
         <class>com.github.cornerstonews.persistence.jpa.entity.Example</class>
+        <class>com.github.cornerstonews.persistence.jpa.entity.MiddleTable</class>
+        <class>com.github.cornerstonews.persistence.jpa.entity.EdgeTable</class>
 
         <properties>
             <property name="javax.persistence.jdbc.url" value="jdbc:h2:mem:test"/>

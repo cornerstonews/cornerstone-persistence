@@ -1,8 +1,5 @@
 package com.github.cornerstonews.persistence.jpa.entity;
 
-import java.util.List;
-import java.util.Objects;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,10 +8,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import java.util.List;
+import java.util.Objects;
 
 @Entity
-@Table(name = "example")
-public class Example {
+@Table(name = "edge_table")
+public class EdgeTable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -23,19 +22,15 @@ public class Example {
     @Column(length = 16)
     private String someString;
 
-    @Column
-    private Integer someNumber;
-
-    @OneToMany(mappedBy = "example", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "edgeTable", fetch = FetchType.LAZY)
     private List<MiddleTable> middleTables;
 
-    public Example() {
-        // For JPA
+    public EdgeTable() {
+        // for JPA
     }
 
-    public Example(final String someString, final Integer someNumber) {
+    public EdgeTable(final String someString) {
         this.someString = someString;
-        this.someNumber = someNumber;
     }
 
     public Integer getId() {
@@ -54,14 +49,6 @@ public class Example {
         this.someString = someString;
     }
 
-    public Integer getSomeNumber() {
-        return someNumber;
-    }
-
-    public void setSomeNumber(final Integer someNumber) {
-        this.someNumber = someNumber;
-    }
-
     public List<MiddleTable> getMiddleTables() {
         return middleTables;
     }
@@ -74,21 +61,20 @@ public class Example {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        final Example example = (Example) o;
-        return Objects.equals(id, example.id) && Objects.equals(someString, example.someString) && Objects.equals(someNumber, example.someNumber);
+        final EdgeTable edgeTable = (EdgeTable) o;
+        return Objects.equals(id, edgeTable.id) && Objects.equals(someString, edgeTable.someString);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, someString, someNumber);
+        return Objects.hash(id, someString);
     }
 
     @Override
     public String toString() {
-        return "Example{" +
+        return "EdgeTable{" +
                 "id=" + id +
                 ", someString='" + someString + '\'' +
-                ", someNumber=" + someNumber +
                 '}';
     }
 }
